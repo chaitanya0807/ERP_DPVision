@@ -58,7 +58,7 @@ export default function VerifyPage() {
     setResending(true)
     setResent(false)
     setError(null)
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
     if (error) {
       setError(error.message)
     } else {
@@ -78,7 +78,7 @@ export default function VerifyPage() {
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: 'email',
+      type: 'signup',
     })
 
     if (error) {
