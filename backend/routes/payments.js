@@ -86,25 +86,32 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   let orderDetails
   try {
     orderDetails = await razorpay.orders.fetch(razorpay_order_id)
-  } catch {
+  } catch (err) {
+    console.error('[verify] Failed to fetch order details:', err.message)
     orderDetails = { amount: 0 }
   }
+  console.log('[verify] company_id:', req.profile.company_id, 'user_id:', req.user.id)
 
   // 3. Insert payment record
+  const paymentRow = {
+    company_id:          req.profile.company_id,
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    amount:              orderDetails.amount / 100, // store in INR
+    status:              'paid',
+  }
+  console.log('[verify] Inserting payment:', JSON.stringify(paymentRow))
+
   const { error: paymentError } = await supabase
     .from('payments')
-    .insert({
-      company_id:          req.profile.company_id,
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      amount:              orderDetails.amount / 100, // store in INR
-      status:              'paid',
-    })
+    .insert(paymentRow)
 
   if (paymentError) {
+    console.error('[verify] Payment insert error:', paymentError.message)
     return res.status(500).json({ error: paymentError.message })
   }
+  console.log('[verify] Payment inserted OK')
 
   // 4. Activate all subscriptions for this company
   const { error: subError } = await supabase
@@ -116,8 +123,10 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
     .eq('company_id', req.profile.company_id)
 
   if (subError) {
+    console.error('[verify] Subscription update error:', subError.message)
     return res.status(500).json({ error: subError.message })
   }
+  console.log('[verify] Subscriptions activated OK')
 
   res.json({ success: true, paymentId: razorpay_payment_id })
 })
