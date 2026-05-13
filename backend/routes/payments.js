@@ -93,10 +93,9 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   console.log('[verify] company_id:', req.profile.company_id, 'user_id:', req.user.id)
 
   // 3. Insert payment record
-  //    Use user_id as fallback when company_id is null
-  const companyId = req.profile.company_id ?? req.user.id
+  //    company_id stays null if user has no company — user_id is the fallback link
   const paymentRow = {
-    company_id:          companyId,
+    company_id:          req.profile.company_id,
     user_id:             req.user.id,
     razorpay_order_id,
     razorpay_payment_id,
