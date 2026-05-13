@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
+interface RazorpayResponse {
+  razorpay_order_id: string
+  razorpay_payment_id: string
+  razorpay_signature: string
+}
+
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
     if (document.getElementById('razorpay-script')) {
@@ -101,7 +107,7 @@ export default function AddCheckoutPage() {
       },
       theme: { color: '#2563eb' },
       modal: { ondismiss: () => setStatus('idle') },
-      handler: async (response: RazorpayResponse) => {
+      handler: async (response) => {
         setStatus('verifying')
         try {
           const verifyRes = await fetch(apiUrl('/api/payments/verify'), {
