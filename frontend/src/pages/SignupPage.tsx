@@ -27,13 +27,22 @@ export default function SignupPage() {
     if (!password) { setError('Please enter a password.'); return }
     setLoading(true)
     setError(null)
-    const { error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    console.log('[signup] result:', { session: !!data.session, error: signUpError?.message })
     if (signUpError) {
       setError(signUpError.message)
       setLoading(false)
       return
     }
-    // Always go to verify page — user must confirm email via OTP
+    // If session returned immediately, Confirm email is OFF in Supabase
+    // In that case, user is already verified — go to company setup
+    if (data.session) {
+      console.warn('[signup] Confirm email is OFF — user auto-verified. Skipping OTP.')
+      navigate('/onboarding/company')
+      setLoading(false)
+      return
+    }
+    // No session = Confirm email is ON — OTP was sent, go to verify page
     navigate('/verify', { state: { email } })
     setLoading(false)
   }
