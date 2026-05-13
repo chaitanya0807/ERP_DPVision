@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { apiUrl } from '@/lib/api'
 import { useOnboarding } from '@/context/OnboardingContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -111,7 +112,7 @@ export default function CompanySetupPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token ?? ''
-      await fetch('/api/workspace/company', {
+      await fetch(apiUrl('/api/workspace/company'), {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',

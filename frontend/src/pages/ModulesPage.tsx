@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronDown, ChevronRight, Package, ArrowRight } from 'lucide-react'
 import { useOnboarding } from '@/context/OnboardingContext'
 import type { SelectedModule } from '@/context/OnboardingContext'
+import { apiUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -63,7 +64,7 @@ export default function ModulesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/modules')
+        const res = await fetch(apiUrl('/api/modules'))
         if (!res.ok) throw new Error('API unavailable')
         const data: ApiModule[] = await res.json()
         setGroups(groupModules(data))

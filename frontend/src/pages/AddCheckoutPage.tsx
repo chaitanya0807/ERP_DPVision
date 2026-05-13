@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { CreditCard, Shield, Loader2, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { apiUrl } from '@/lib/api'
 import { useOnboarding } from '@/context/OnboardingContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -66,7 +67,7 @@ export default function AddCheckoutPage() {
 
     let orderData: { orderId: string; amount: number; currency: string; key: string }
     try {
-      const res = await fetch('/api/payments/order', {
+      const res = await fetch(apiUrl('/api/payments/order'), {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',
@@ -103,7 +104,7 @@ export default function AddCheckoutPage() {
       handler: async (response: RazorpayResponse) => {
         setStatus('verifying')
         try {
-          const verifyRes = await fetch('/api/payments/verify', {
+          const verifyRes = await fetch(apiUrl('/api/payments/verify'), {
             method:  'POST',
             headers: {
               'Content-Type':  'application/json',

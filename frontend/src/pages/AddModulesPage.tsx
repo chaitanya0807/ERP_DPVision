@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Package, ArrowRight, ShoppingBag, CheckCircle2 } from 'lucide-react'
+import { apiUrl } from '@/lib/api'
 import { useOnboarding } from '@/context/OnboardingContext'
 import type { SelectedModule } from '@/context/OnboardingContext'
 import { Button } from '@/components/ui/button'
@@ -44,7 +45,7 @@ export default function AddModulesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/modules')
+        const res = await fetch(apiUrl('/api/modules'))
         if (!res.ok) throw new Error('API unavailable')
         const data: ApiModule[] = await res.json()
         setAllModules(data)

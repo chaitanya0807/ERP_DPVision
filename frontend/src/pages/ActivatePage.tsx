@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Zap, CreditCard, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { apiUrl } from '@/lib/api'
 import { useOnboarding } from '@/context/OnboardingContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,7 +21,7 @@ export default function ActivatePage() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token ?? ''
       const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-      await fetch('/api/modules/subscriptions', {
+      await fetch(apiUrl('/api/modules/subscriptions'), {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',
