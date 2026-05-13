@@ -93,8 +93,11 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   console.log('[verify] company_id:', req.profile.company_id, 'user_id:', req.user.id)
 
   // 3. Insert payment record
+  //    Use user_id as fallback when company_id is null
+  const companyId = req.profile.company_id ?? req.user.id
   const paymentRow = {
-    company_id:          req.profile.company_id,
+    company_id:          companyId,
+    user_id:             req.user.id,
     razorpay_order_id,
     razorpay_payment_id,
     razorpay_signature,
@@ -113,14 +116,18 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   }
   console.log('[verify] Payment inserted OK')
 
-  // 4. Activate all subscriptions for this company
+  // 4. Activate all subscriptions for this company/user
+  const subFilter = req.profile.company_id
+    ? { column: 'company_id', value: req.profile.company_id }
+    : { column: 'user_id',    value: req.user.id }
+
   const { error: subError } = await supabase
     .from('subscriptions')
     .update({
       status:       'active',
       activated_at: new Date().toISOString(),
     })
-    .eq('company_id', req.profile.company_id)
+    .eq(subFilter.column, subFilter.value)
 
   if (subError) {
     console.error('[verify] Subscription update error:', subError.message)
