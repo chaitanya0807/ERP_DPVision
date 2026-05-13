@@ -107,7 +107,7 @@ export default function AddCheckoutPage() {
       },
       theme: { color: '#2563eb' },
       modal: { ondismiss: () => setStatus('idle') },
-      handler: async (response) => {
+      handler: async (response: RazorpayResponse) => {
         setStatus('verifying')
         try {
           const verifyRes = await fetch(apiUrl('/api/payments/verify'), {
