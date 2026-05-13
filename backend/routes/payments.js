@@ -67,11 +67,18 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   }
 
   // 1. Validate HMAC signature
-  const expectedSignature = createHmac('sha256', process.env.RAZORPAY_SECRET)
+  const secret = process.env.RAZORPAY_SECRET
+  console.log('[verify] RAZORPAY_SECRET set?', !!secret, 'length:', secret?.length)
+  console.log('[verify] order_id:', razorpay_order_id, 'payment_id:', razorpay_payment_id)
+  console.log('[verify] received signature:', razorpay_signature)
+
+  const expectedSignature = createHmac('sha256', secret)
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest('hex')
+  console.log('[verify] expected signature:', expectedSignature)
 
   if (expectedSignature !== razorpay_signature) {
+    console.error('[verify] SIGNATURE MISMATCH')
     return res.status(400).json({ error: 'Payment signature is invalid.' })
   }
 
