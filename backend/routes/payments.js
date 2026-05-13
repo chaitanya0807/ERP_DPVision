@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { validatePaymentVerification } from 'razorpay/dist/utils/razorpay-utils.js'
+import { createHmac } from 'crypto'
 import { razorpay } from '../lib/razorpay.js'
 import { supabase } from '../lib/supabase.js'
 import { verifyJWT } from '../middleware/verifyJWT.js'
@@ -67,18 +67,11 @@ router.post('/verify', verifyJWT, attachProfile, async (req, res) => {
   }
 
   // 1. Validate HMAC signature
-  let isValid = false
-  try {
-    isValid = validatePaymentVerification(
-      { order_id: razorpay_order_id, payment_id: razorpay_payment_id },
-      razorpay_signature,
-      process.env.RAZORPAY_SECRET
-    )
-  } catch {
-    return res.status(500).json({ error: 'Signature validation failed.' })
-  }
+  const expectedSignature = createHmac('sha256', process.env.RAZORPAY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest('hex')
 
-  if (!isValid) {
+  if (expectedSignature !== razorpay_signature) {
     return res.status(400).json({ error: 'Payment signature is invalid.' })
   }
 
