@@ -35,6 +35,13 @@ export default function LoginPage() {
     }
 
     if (data.session) {
+      // Check if email is verified
+      const user = data.user
+      if (!user.email_confirmed_at) {
+        navigate('/verify', { state: { email: user.email } })
+        setLoading(false)
+        return
+      }
       // If onboarding already completed, go to dashboard; else start onboarding
       const payment = localStorage.getItem('ob_payment')
       const company = localStorage.getItem('ob_company')

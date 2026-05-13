@@ -22,24 +22,19 @@ export default function SignupPage() {
     setLoading(false)
   }
 
-  async function handleGenerateOTP() {
+  async function handleSignUp() {
     if (!email) { setError('Please enter your email address.'); return }
     if (!password) { setError('Please enter a password.'); return }
     setLoading(true)
     setError(null)
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { error: signUpError } = await supabase.auth.signUp({ email, password })
     if (signUpError) {
       setError(signUpError.message)
       setLoading(false)
       return
     }
-    // If session is returned immediately, confirm email is OFF — skip /verify
-    if (data.session) {
-      navigate('/onboarding/company')
-    } else {
-      // Confirm email is ON — go to verify page to enter OTP
-      navigate('/verify', { state: { email, password, method: 'email' } })
-    }
+    // Always go to verify page — user must confirm email via OTP
+    navigate('/verify', { state: { email } })
     setLoading(false)
   }
 
@@ -114,11 +109,11 @@ export default function SignupPage() {
 
           <Button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleGenerateOTP}
+            onClick={handleSignUp}
             disabled={loading}
           >
             <Smartphone className="h-4 w-4" />
-            {loading ? 'Sending OTP…' : 'Generate OTP'}
+            {loading ? 'Creating account…' : 'Sign Up & Verify Email'}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground pt-1">

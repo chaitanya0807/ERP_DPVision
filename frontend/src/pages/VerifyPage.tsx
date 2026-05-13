@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Mail, MessageCircle, Phone } from 'lucide-react'
+import { Mail, MessageCircle, Phone, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,6 +14,7 @@ interface OTPOption {
   label: string
   icon: React.ReactNode
   description: string
+  disabled: boolean
 }
 
 const otpOptions: OTPOption[] = [
@@ -22,18 +23,21 @@ const otpOptions: OTPOption[] = [
     label: 'Email OTP',
     icon: <Mail className="h-5 w-5" />,
     description: 'Sent to your email',
+    disabled: false,
   },
   {
     id: 'whatsapp',
     label: 'WhatsApp OTP',
     icon: <MessageCircle className="h-5 w-5 text-green-600" />,
-    description: 'Via WhatsApp message',
+    description: 'Coming soon',
+    disabled: true,
   },
   {
     id: 'phone',
     label: 'Phone Call OTP',
     icon: <Phone className="h-5 w-5 text-blue-600" />,
-    description: 'Automated phone call',
+    description: 'Coming soon',
+    disabled: true,
   },
 ]
 
@@ -45,7 +49,23 @@ export default function VerifyPage() {
   const [selectedMethod, setSelectedMethod] = useState<OTPMethod>('email')
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  async function handleResendOTP() {
+    if (!email) return
+    setResending(true)
+    setResent(false)
+    setError(null)
+    const { error } = await supabase.auth.signInWithOtp({ email })
+    if (error) {
+      setError(error.message)
+    } else {
+      setResent(true)
+    }
+    setResending(false)
+  }
 
   async function handleVerify() {
     if (!otp || otp.length < 6) {
@@ -92,14 +112,21 @@ export default function VerifyPage() {
             {otpOptions.map((option) => (
               <button
                 key={option.id}
-                onClick={() => setSelectedMethod(option.id)}
+                onClick={() => !option.disabled && setSelectedMethod(option.id)}
+                disabled={option.disabled}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all hover:bg-accent',
-                  selectedMethod === option.id
+                  'relative flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all',
+                  option.disabled
+                    ? 'border-input bg-muted/50 cursor-not-allowed opacity-60'
+                    : 'hover:bg-accent',
+                  !option.disabled && selectedMethod === option.id
                     ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600'
                     : 'border-input bg-background'
                 )}
               >
+                {option.disabled && (
+                  <Lock className="absolute top-1 right-1 h-3 w-3 text-muted-foreground" />
+                )}
                 {option.icon}
                 <span className="text-xs font-medium leading-tight">{option.label}</span>
                 <span className="text-[10px] text-muted-foreground leading-tight">{option.description}</span>
@@ -134,6 +161,23 @@ export default function VerifyPage() {
           >
             {loading ? 'Verifying…' : 'Verify & Continue'}
           </Button>
+
+          {/* Resend OTP */}
+          <div className="text-center">
+            {resent ? (
+              <p className="text-sm text-green-600 font-medium">OTP resent to {email}</p>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResendOTP}
+                disabled={resending}
+                className="text-blue-600"
+              >
+                {resending ? 'Resending…' : 'Resend OTP'}
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
